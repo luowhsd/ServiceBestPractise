@@ -12,9 +12,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-/**
- * Created by fangl on 2017/11/16.
- */
 
 public class DownloadTask extends AsyncTask<String,Integer,Integer> {
 
@@ -67,16 +64,16 @@ public class DownloadTask extends AsyncTask<String,Integer,Integer> {
                int total = 0;
                int len;
                while((len=is.read(b))!=-1){
-                    if(isCanceled){
-                        return TYPE_CANCELED;
-                    }else if(isPaused){
-                        return TYPE_PAUSED;
-                    }else{
-                        total+=len;
-                        savedFile.write(b,0,len);
-                        int progress = (int)((total+downloadedLength)*100/contentLength);
-                        publishProgress(progress);
-                    }
+                   if(isCanceled){
+                       return TYPE_CANCELED;
+                   }else if(isPaused){
+                       return TYPE_PAUSED;
+                   }else{
+                       total+=len;
+                       savedFile.write(b,0,len);
+                       int progress = (int)((total+downloadedLength)*100/contentLength);
+                       publishProgress(progress);
+                   }
                }
 
            }

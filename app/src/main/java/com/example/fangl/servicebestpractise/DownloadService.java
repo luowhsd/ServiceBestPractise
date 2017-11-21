@@ -2,10 +2,13 @@ package com.example.fangl.servicebestpractise;
 
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
 public class DownloadService extends Service {
@@ -15,27 +18,36 @@ public class DownloadService extends Service {
     private DownloadListener listener = new DownloadListener() {
         @Override
         public void onProgress(int progress) {
-//            getNotificationManager().notify(1,);
+            getNotificationManager().notify(1,getNotification("downloading...",progress));
         }
 
         @Override
         public void onSuccess() {
-
+            downloadTask = null;
+            stopForeground(true);
+            getNotificationManager().notify(1,getNotification("download success.",-1));
+            Toast.makeText(DownloadService.this,"download success",Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onFailed() {
-
+            downloadTask = null;
+            stopForeground(true);
+            getNotificationManager().notify(1,getNotification("download failed",-1));
+            Toast.makeText(DownloadService.this,"download failed",Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onPaused() {
-
+            downloadTask = null;
+            Toast.makeText(DownloadService.this,"Pause",Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onCanceled() {
-
+            downloadTask = null;
+            stopForeground(true);
+            Toast.makeText(DownloadService.this,"Cancel",Toast.LENGTH_SHORT).show();
         }
     };
 
@@ -46,8 +58,7 @@ public class DownloadService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        return mBinder;
     }
 
     class DownloadBinder extends Binder{
@@ -63,13 +74,16 @@ public class DownloadService extends Service {
         }
 
         public void pauseDownload(){
-            downloadTask = null;
-            Toast.makeText(DownloadService.this,"pause",Toast.LENGTH_SHORT).show();
+            if(downloadTask!=null){
+                downloadTask.pauseDownload();
+            }
         }
 
         public void cancelDownload(){
-            downloadTask = null;
-            Toast.makeText(DownloadService.this,"cancel",Toast.LENGTH_SHORT).show();
+            if(downloadTask!=null){
+                downloadTask.cancelDownload();
+            }
+
         }
 
     }
@@ -80,7 +94,19 @@ public class DownloadService extends Service {
 
     private Notification getNotification(String title,int progress){
         Intent intent = new Intent(this,MainActivity.class);
-        return null;
+        PendingIntent pi = PendingIntent.getActivity(this,0,intent,0);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+
+        builder.setSmallIcon(R.mipmap.ic_launcher);
+        builder.setLargeIcon(BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcher));
+        builder.setContentIntent(pi);
+        builder.setContentTitle(title);
+        if(progress>0){
+            // 当progress大于0时才显示进度
+            builder.setContentText(progress+"%");
+            builder.setProgress(100,progress,false);
+        }
+        return builder.build();
     }
 
 
